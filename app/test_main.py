@@ -1,14 +1,15 @@
 import datetime
 import pytest
+from typing import Any, Dict, List, Type
 from app.main import outdated_products
 
 
-def fake_date_factory(today_value: datetime.date) -> type[datetime.date]:
-    class fake_date(datetime.date):
+def fake_date_factory(today_value: datetime.date) -> Type[datetime.date]:
+    class FakeDate(datetime.date):
         @classmethod
         def today(cls) -> datetime.date:
             return today_value
-    return fake_date
+    return FakeDate
 
 
 @pytest.mark.parametrize(
@@ -60,9 +61,12 @@ def fake_date_factory(today_value: datetime.date) -> type[datetime.date]:
     ],
 )
 def test_outdated_products(
-    monkeypatch, today_value, products, expected
+    monkeypatch: pytest.MonkeyPatch,
+    today_value: datetime.date,
+    products: List[Dict[str, Any]],
+    expected: List[str],
 ) -> None:
-    fake_date = fake_date_factory(today_value)
+    fake_date: Type[datetime.date] = fake_date_factory(today_value)
     monkeypatch.setattr("app.main.datetime.date", fake_date)
-    result = outdated_products(products)
+    result: List[str] = outdated_products(products)
     assert sorted(result) == sorted(expected)
